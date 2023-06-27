@@ -6,7 +6,7 @@ const urlRoutes = express.Router();
 urlRoutes.post('/', controller.createArticle);
 urlRoutes.get('/', controller.getArticles);
 urlRoutes.get('/:id', controller.getArticleById);
-urlRoutes.get('/:id', controller.updateArticle);
-urlRoutes.get('/:id', controller.deleteArticle);
+urlRoutes.put('/:id', controller.updateArticle);
+urlRoutes.delete('/:id', controller.deleteArticle);
 
-module.exports = urlRoutes;
+export default urlRoutes
