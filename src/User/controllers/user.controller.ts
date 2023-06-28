@@ -1,10 +1,19 @@
 import { Request, Response } from "express";
 import prisma from "../../../prisma/prisma";
 
+const findId = async (id: string) => {
+  const item = await prisma.user.findMany({
+    where: {
+      id,
+    },
+  });
+  return item
+}
+
 export const getArticles = async (req: Request, res: Response) => {
   try {
     const items = await prisma.user.findMany();
-    res.json(items);
+    res.status(200).json(items);
   } catch (err) {
     console.error('Error retrieving items:', err);
     res.status(500).send('Internal Server Error');
@@ -14,12 +23,12 @@ export const getArticles = async (req: Request, res: Response) => {
 export const getArticleById = async (req: Request, res: Response) => {
   const { id } = req.params
   try {
-    const items = await prisma.user.findMany({
-      where: {
-        id,
-      },
-    });
-    res.json(items);
+    const item = await findId(id);
+    if(!item || item.length == 0) {
+      res.status(404).json({message: "User not found!"});
+    } else {
+      res.status(200).json(item);
+    }
   } catch (err) {
     console.error('Error retrieving items:', err);
     res.status(500).send('Internal Server Error');
@@ -36,7 +45,7 @@ export const createArticle = async (req: Request, res: Response) => {
         tags,
       },
     });
-    res.json(newUser);
+    res.status(201).json(newUser);
   } catch (error: any) {
     console.log(error.message)
     res.status(500).json({
@@ -50,18 +59,22 @@ export const updateArticle = async (req: Request, res: Response) => {
     const { title, content, tags } = req.body
     const { id } = req.params
 
-    const updatedUser = await prisma.user.update({
-      where: {
-        id,
-      },
-      data: {
-        title,
-        content,
-        tags,
-      },
-    })
-
-    res.json(updatedUser)
+    const item = await findId(id);
+    if(!item || item.length == 0) {
+      res.status(404).json({message: "User not found!"});
+    } else {
+      const updatedUser = await prisma.user.update({
+        where: {
+          id,
+        },
+        data: {
+          title,
+          content,
+          tags,
+        },
+      })
+      res.status(200).json(updatedUser)
+    }
   } catch (error) {
     res.status(500).json({
       message: "Something went wrong",
@@ -73,13 +86,17 @@ export const deleteArticle = async (req: Request, res: Response) => {
   try {
     const { id } = req.params
 
-    const deletedUser = await prisma.user.delete({
-      where: {
-        id,
-      },
-    })
-
-    res.json(deletedUser)
+    const item = await findId(id);
+    if(!item || item.length == 0) {
+      res.status(404).json({message: "User not found!"});
+    } else {
+      const deletedUser = await prisma.user.delete({
+        where: {
+          id,
+        },
+      })
+      res.status(200).json(deletedUser)
+    }
   } catch (error) {
     res.status(500).json({
       message: "Something went wrong",
