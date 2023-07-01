@@ -8,25 +8,23 @@ import {
   findRefreshTokenById, 
   deleteRefreshToken, 
 } from './auth.service';
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { generateTokens } from './../../utils/jwt';
 import { v4 } from 'uuid'
 import bcrypt from 'bcrypt'
 import jwt, { JwtPayload, Secret } from 'jsonwebtoken'
 import { hashToken } from '../../utils/hashToken';
 
-export const registerUser = async (req: Request, res: Response) => {
+export const registerUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { email, password } = req.body;
     if (!email || !password) {
-      res.status(400).send('You must provide an email and a password.');
-      return;
+      return res.status(400).send('You must provide an email and a password.');
     }
     
     const existingUser = await findUserByEmail(email);
     if (!!existingUser) {
-      res.status(400).send('Email already in use.');
-      return;
+      return res.status(400).send('Email already in use.');
     }
 
     const user = await createUserByEmailAndPassword({ email, password })
@@ -38,32 +36,26 @@ export const registerUser = async (req: Request, res: Response) => {
       accessToken,
       refreshToken,
     });
-  } catch (err: any) {
-    console.log(err.message)
-    res.status(500).json({
-      message: "Internal Server Error",
-    })
+  } catch (err) {
+    next(err);
   }
 }
 
-export const loginUser = async (req: Request, res: Response) => {
+export const loginUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { email, password } = req.body;
     if (!email || !password) {
-      res.status(400).send('You must provide an email and a password.');
-      return;
+      return res.status(400).send('You must provide an email and a password.');
     }
 
     const existingUser = await findUserByEmail(email);
     if (!existingUser) {
-      res.status(403).send('Invalid login credentials.');
-      return;
+      return res.status(403).send('Invalid login credentials.');
     }
 
     const validPassword = await bcrypt.compare(password, existingUser.password);
     if (!validPassword) {
-      res.status(403).send('Invalid login credentials.');
-      return;
+      return res.status(403).send('Invalid login credentials.');
     }
 
     const jti = v4();
@@ -74,39 +66,32 @@ export const loginUser = async (req: Request, res: Response) => {
       accessToken,
       refreshToken,
     })
-  } catch (err: any) {
-    console.log(err.message)
-    res.status(500).json({
-      message: "Internal Server Error",
-    })
+  } catch (err) {
+    next(err);
   }
 }
 
-export const refreshUser = async (req: Request, res: Response) => {
+export const refreshUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { refreshToken } = req.body;
     if (!refreshToken) {
-      res.status(400).send('Missing refresh token.');
-      return;
+      return res.status(400).send('Missing refresh token.');
     }
 
     const payload = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET as Secret) as JwtPayload;
     const savedRefreshToken = await findRefreshTokenById(payload.jti as string);
     if (!savedRefreshToken || !!savedRefreshToken.revoked) {
-      res.status(401).send('Unauthorized');
-      return;
+      return res.status(401).send('Unauthorized');
     }
     
     const hashedToken = hashToken(refreshToken);
     if (hashedToken !== savedRefreshToken.hashedToken) {
-      res.status(401).send('Unauthorized');
-      return;
+      return res.status(401).send('Unauthorized');
     }
 
     const user = await findUserById(payload.userId);
     if (!user) {
-      res.status(401).send('Unauthorized');
-      return;
+      return res.status(401).send('Unauthorized');
     }
 
     await deleteRefreshToken(savedRefreshToken.id);
@@ -118,10 +103,7 @@ export const refreshUser = async (req: Request, res: Response) => {
       accessToken,
       refreshToken: newRefreshToken,
     });
-  } catch (err: any) {
-    console.log(err.message)
-    res.status(500).json({
-      message: "Internal Server Error",
-    })
+  } catch (err) {
+    next(err);
   }
 }

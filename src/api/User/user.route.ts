@@ -1,5 +1,6 @@
 import express from 'express'
 import * as controller from './user.controller'
+import { isAuthenticated } from '../../middlewares/middleware';
 
 const urlRoutes = express.Router();
 

@@ -1,3 +1,4 @@
+import { CustomRequest } from './../../middlewares/interface';
 import { Request, Response } from "express";
 import prisma from "../../utils/prisma";
 
@@ -25,7 +26,7 @@ export const getArticleById = async (req: Request, res: Response) => {
   try {
     const item = await findId(id);
     if(!item || item.length == 0) {
-      res.status(404).json({message: "User not found!"});
+      res.status(404).json({message: "Article not found!"});
     } else {
       res.status(200).json(item);
     }
@@ -61,7 +62,7 @@ export const updateArticle = async (req: Request, res: Response) => {
 
     const item = await findId(id);
     if(!item || item.length == 0) {
-      res.status(404).json({message: "User not found!"});
+      res.status(404).json({message: "Article not found!"});
     } else {
       const updatedUser = await prisma.article.update({
         where: {
@@ -89,7 +90,7 @@ export const deleteArticle = async (req: Request, res: Response) => {
 
     const item = await findId(id);
     if(!item || item.length == 0) {
-      res.status(404).json({message: "User not found!"});
+      res.status(404).json({message: "Article not found!"});
     } else {
       const deletedUser = await prisma.article.delete({
         where: {
