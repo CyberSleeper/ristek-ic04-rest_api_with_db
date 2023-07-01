@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import prisma from "../../../prisma/prisma";
+import prisma from "../../utils/prisma";
 
 const findId = async (id: string) => {
   const item = await prisma.article.findMany({
@@ -46,8 +46,8 @@ export const createArticle = async (req: Request, res: Response) => {
       },
     });
     res.status(201).json(newUser);
-  } catch (error: any) {
-    console.log(error.message)
+  } catch (err: any) {
+    console.log(err.message)
     res.status(500).json({
       message: "Internal Server Error",
     })
@@ -75,9 +75,10 @@ export const updateArticle = async (req: Request, res: Response) => {
       })
       res.status(200).json(updatedUser)
     }
-  } catch (error) {
+  } catch (err: any) {
+    console.log(err.message)
     res.status(500).json({
-      message: "Something went wrong",
+      message: "Internal Server Error",
     })
   }
 }
@@ -97,9 +98,10 @@ export const deleteArticle = async (req: Request, res: Response) => {
       })
       res.status(200).json(deletedUser)
     }
-  } catch (error) {
+  } catch (err: any) {
+    console.log(err.message)
     res.status(500).json({
-      message: "Something went wrong",
+      message: "Internal Server Error",
     })
   }
 }
