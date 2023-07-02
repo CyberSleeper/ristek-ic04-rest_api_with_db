@@ -1,10 +1,12 @@
 import { CustomRequest } from './../../middlewares/interface';
 import { Request, Response } from "express";
 import prisma from "../../utils/prisma";
+import { JwtPayload } from 'jsonwebtoken';
 
-const findId = async (id: string) => {
+const findId = async (userId: string, id: string) => {
   const item = await prisma.article.findMany({
     where: {
+      userId,
       id,
     },
   });
@@ -12,8 +14,14 @@ const findId = async (id: string) => {
 }
 
 export const getArticles = async (req: Request, res: Response) => {
+  console.log("good")
+  const { userId } = ((req as CustomRequest).payload as JwtPayload);
   try {
-    const items = await prisma.article.findMany();
+    const items = await prisma.article.findMany({
+      where: {
+        userId,
+      }
+    });
     res.status(200).json(items);
   } catch (err) {
     console.error('Error retrieving items:', err);
@@ -22,9 +30,10 @@ export const getArticles = async (req: Request, res: Response) => {
 }
 
 export const getArticleById = async (req: Request, res: Response) => {
+  const { userId } = ((req as CustomRequest).payload as JwtPayload);
   const { id } = req.params
   try {
-    const item = await findId(id);
+    const item = await findId(userId, id);
     if(!item || item.length == 0) {
       res.status(404).json({message: "Article not found!"});
     } else {
@@ -37,10 +46,12 @@ export const getArticleById = async (req: Request, res: Response) => {
 }
 
 export const createArticle = async (req: Request, res: Response) => {
+  const { userId } = ((req as CustomRequest).payload as JwtPayload);
   try {
     const { title, content, tags } = req.body
     const newUser = await prisma.article.create({
       data: {
+        userId,
         title,
         content,
         tags,
@@ -56,11 +67,12 @@ export const createArticle = async (req: Request, res: Response) => {
 }
 
 export const updateArticle = async (req: Request, res: Response) => {
+  const { userId } = ((req as CustomRequest).payload as JwtPayload);
   try {
     const { title, content, tags } = req.body
     const { id } = req.params
 
-    const item = await findId(id);
+    const item = await findId(userId, id);
     if(!item || item.length == 0) {
       res.status(404).json({message: "Article not found!"});
     } else {
@@ -85,10 +97,11 @@ export const updateArticle = async (req: Request, res: Response) => {
 }
 
 export const deleteArticle = async (req: Request, res: Response) => {
+  const { userId } = ((req as CustomRequest).payload as JwtPayload);
   try {
     const { id } = req.params
 
-    const item = await findId(id);
+    const item = await findId(userId, id);
     if(!item || item.length == 0) {
       res.status(404).json({message: "Article not found!"});
     } else {

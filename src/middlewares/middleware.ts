@@ -22,4 +22,5 @@ export const isAuthenticated = (req: Request, res: Response, next: NextFunction)
     }
     throw new Error('🚫 Unauthorized 🚫');
   }
+  return next();
 }

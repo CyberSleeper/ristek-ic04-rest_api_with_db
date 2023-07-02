@@ -31,6 +31,7 @@ model RefreshToken {
 
 model Article {
   id            String         @id @unique @default(uuid())
+  userId        String
   title         String
   content       String
   tags          String[]
